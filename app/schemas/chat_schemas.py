@@ -3,9 +3,9 @@ from pydantic import BaseModel
 
 class ChatRequest(BaseModel):
     message: str
-    session: int | None = None
+    chat_session: int | None = None
 
 
 class ChatResponse(BaseModel):
     message: str
-    session: int
+    chat_session: int
