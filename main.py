@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
     if not gemini_api_key:
         raise ValueError("GEMINI_API_KEY environment variable not set")
     
-    app.state.gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    app.state.gemini_client = genai.Client(api_key=gemini_api_key)
     yield
     print("Stopping app...")
 
