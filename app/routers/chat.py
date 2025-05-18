@@ -107,7 +107,7 @@ Model: {
         raise HTTPException(status_code=501, detail="Redirect to human :(")
 
     main_chat = gemini_client.aio.chats.create(
-        model=os.getenv("ANALYSIS_MODEL", "gemini-2.0-flash-lite"),
+        model=os.getenv("MAIN_MODEL", "gemini-2.0-flash-lite"),
         config=GenerateContentConfig(
             system_instruction="""You are a helpfull customer support chatbot, your goal is to resolve the problem that the user might have. You should adapt to the user request and ask for clarification if you dont undestand insted of make guesses. The user may have an indicative of the current mood of the user, use it to decide how to aproach the user. Your conversations should look like:
 User: Hi, could you help me?
