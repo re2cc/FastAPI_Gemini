@@ -30,7 +30,14 @@ async def chat(
         if not result.inserted_primary_key:
             raise HTTPException(status_code=500, detail="Failed to create session ID")
         chat_session_id = result.inserted_primary_key[0]
-    else:  # TODO: check if chat_request.session exists
+    else:
+        chat_session_verify_query = select(chat_session_table.c.id).where(
+            chat_session_table.c.id == chat_request.chat_session
+        )
+        result = await conn.execute(chat_session_verify_query)
+        if not result.one_or_none():
+            raise HTTPException(status_code=404, detail="Failed to find chat session")
+
         chat_session_id = chat_request.chat_session
 
     history_retrieve_query = (
@@ -59,15 +66,15 @@ async def chat(
     if not response.text:
         raise HTTPException(status_code=500, detail="Failed to generate response")
 
-    message_insert_query = insert(chat_message_table).values(
+    user_message_insert_query = insert(chat_message_table).values(
         chat_session_id=chat_session_id, role="user", message=chat_request.message
     )
-    await conn.execute(message_insert_query)
+    await conn.execute(user_message_insert_query)
 
-    message_insert_query = insert(chat_message_table).values(
+    mode_message_insert_query = insert(chat_message_table).values(
         chat_session_id=chat_session_id, role="model", message=response.text
     )
-    await conn.execute(message_insert_query)
+    await conn.execute(mode_message_insert_query)
 
     await conn.commit()
 
