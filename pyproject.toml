@@ -1,7 +1,7 @@
 [project]
 name = "support"
 version = "0.1.0"
-description = "Add your description here"
+description = "A FastAPI-based chatbot using Google Gemini for conversational AI and SQLAlchemy (Core) for chat persistence "
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

@@ -1,3 +1,4 @@
+import os
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -5,6 +6,7 @@ from google import genai
 from google.genai.types import GenerateContentConfig, ModelContent, UserContent
 from google.genai.types import Schema as GenaiSchema
 from google.genai.types import Type as GenaiType
+from pydantic import ValidationError
 from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -53,7 +55,7 @@ async def chat(
             history.append(ModelContent(row.message))
 
     analysis_chat = gemini_client.aio.chats.create(
-        model="gemini-1.5-flash-8b",
+        model=os.getenv("ANALYSIS_MODEL", "gemini-1.5-flash-8b"),
         config=GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=GenaiSchema(
@@ -97,7 +99,7 @@ Model: {
         analysis_response = AnalysisModelResponse.model_validate_json(
             analysis_response.text
         )
-    except Exception:
+    except ValidationError:
         raise HTTPException(status_code=500, detail="Interal model error")
 
     # TODO: Some kind of redirect, not really in project scope
@@ -105,7 +107,7 @@ Model: {
         raise HTTPException(status_code=501, detail="Redirect to human :(")
 
     main_chat = gemini_client.aio.chats.create(
-        model="gemini-2.0-flash-lite",
+        model=os.getenv("ANALYSIS_MODEL", "gemini-2.0-flash-lite"),
         config=GenerateContentConfig(
             system_instruction="""You are a helpfull customer support chatbot, your goal is to resolve the problem that the user might have. You should adapt to the user request and ask for clarification if you dont undestand insted of make guesses. The user may have an indicative of the current mood of the user, use it to decide how to aproach the user. Your conversations should look like:
 User: Hi, could you help me?
@@ -126,10 +128,10 @@ User: (sad) My package has not arived yet, i am afraid it might have get lost"""
     )
     await conn.execute(user_message_insert_query)
 
-    mode_message_insert_query = insert(chat_message_table).values(
+    model_message_insert_query = insert(chat_message_table).values(
         chat_session_id=chat_session_id, role="model", message=response.text
     )
-    await conn.execute(mode_message_insert_query)
+    await conn.execute(model_message_insert_query)
 
     await conn.commit()
 
