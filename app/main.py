@@ -14,8 +14,6 @@ load_dotenv(override=True)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Starting app...")
-
     # Gemini setup
     gemini_api_key = os.getenv("GEMINI_API_KEY")
     if not gemini_api_key:
@@ -41,8 +39,6 @@ async def lifespan(app: FastAPI):
 
     # Database cleanup
     await app.state.db_engine.dispose()
-
-    print("Stopping app...")
 
 
 app = FastAPI(lifespan=lifespan)
