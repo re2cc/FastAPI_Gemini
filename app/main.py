@@ -25,10 +25,13 @@ async def lifespan(app: FastAPI):
 
     # Database setup
     db_url = os.getenv("DATABASE_URL")
+    db_echo = os.getenv("DB_ECHO")
     if not db_url:
         raise ValueError("DATABASE_URL environment variable not set")
+    if not (db_echo == "0" or db_echo == "1"):
+        raise ValueError("DB_ECHO environment variable not set correctly")
 
-    app.state.db_engine = create_async_engine(db_url, echo=True)
+    app.state.db_engine = create_async_engine(db_url, echo=bool(int(db_echo)))
     async with app.state.db_engine.connect() as conn:
         await conn.run_sync(metadata_obj.create_all)
         await conn.commit()
