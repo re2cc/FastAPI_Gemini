@@ -1,12 +1,14 @@
 import os
 from contextlib import asynccontextmanager
-from typing import Annotated, cast
+from typing import Annotated
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI
 from google import genai
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncConnection, create_async_engine
+
+from app.dependencies import get_client, get_conn
 
 load_dotenv()
 
@@ -43,15 +45,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
-
-def get_client() -> genai.Client:
-    return app.state.gemini_client
-
-
-async def get_conn():
-    async with app.state.db_engine.connect() as conn:
-        yield cast(AsyncConnection, conn)
 
 
 @app.post("/chat")
